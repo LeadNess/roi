@@ -3,8 +3,8 @@
 #include <args.hpp>
 
 struct GeneratorArgs {
-    std::string outputFileName;
-    std::string cfgFileName;
+    std::string _cfgFileName;
+    std::string _outputFilesName;
 
     GeneratorArgs() = default;
 
@@ -14,17 +14,12 @@ struct GeneratorArgs {
 
     template<class F>
     void parse(F f) {
-        f(cfgFileName, "--config", "-c", args::help("Config file name."), args::required());
-        f(outputFileName, "--output", "-o", args::help("Output file name."));
+        f(_outputFilesName, "--output", "-o", args::help("Output files names prefix"), args::required());
+        f(_cfgFileName, "--config", "-c", args::help("Config file name"), args::required());
     }
 
     void run() {
-        if (outputFileName.empty()) {
-            std::cout << "Output file name is not set - generated data will be output to stdout." << std::endl;
-        } else {
-            std::cout << "Output file: " << outputFileName << std::endl;
-
-        }
-        std::cout << "Config file: " << cfgFileName << std::endl;
+        std::cout << "Config file: " << _cfgFileName << std::endl;
+        std::cout << "Output files name prefix: " << _outputFilesName << std::endl;
     }
 };
