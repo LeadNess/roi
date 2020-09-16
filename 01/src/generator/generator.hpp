@@ -52,28 +52,28 @@ public:
 
     void generateData(string outputFileNamePrefix) {
         std::random_device rd;
-        std::mt19937 rng(rd());
+        std::mt19937 range(rd());
         std::uniform_int_distribution<int> getNode(1, _maxNodesCount);
         std::uniform_int_distribution<int> getEdgeWeight(_minEdgeWeight, _maxEdgeWeight);
 
         auto existEdgesSet = std::set<pair<int, int>>();
 
         for (int i = 0; i < _edgesCount; i++) {
-            int firstNode = getNode(rng);
-            int secondNode = getNode(rng);
+            int firstNode = getNode(range);
+            int secondNode = getNode(range);
             while (secondNode == firstNode) {
-                secondNode = getNode(rng);
+                secondNode = getNode(range);
             }
 
             while (existEdgesSet.find(pair<int, int>(firstNode, secondNode)) != existEdgesSet.end()) {
-                firstNode = getNode(rng);
-                secondNode = getNode(rng);
+                firstNode = getNode(range);
+                secondNode = getNode(range);
                 while (secondNode == firstNode) {
-                    secondNode = getNode(rng);
+                    secondNode = getNode(range);
                 }
             }
             existEdgesSet.insert(pair<int, int>(firstNode, secondNode));
-            _edgesVec.emplace_back(Edge(firstNode, secondNode, getEdgeWeight(rng)));
+            _edgesVec.emplace_back(Edge(firstNode, secondNode, getEdgeWeight(range)));
         }
         string fileName = outputFileNamePrefix + std::to_string(_edgesVec.size()) + ".txt";
         try {
@@ -96,7 +96,7 @@ struct Config {
     int maxEdgeWeight;
 
     Config(const int& edgesCount, const int& maxNodesCount, const int& minEdgeWeight, const int& maxEdgeWeight):
-        edgesCount(edgesCount), maxNodesCount(maxNodesCount), minEdgeWeight(minEdgeWeight), maxEdgeWeight(minEdgeWeight) {}
+        edgesCount(edgesCount), maxNodesCount(maxNodesCount), minEdgeWeight(minEdgeWeight), maxEdgeWeight(maxEdgeWeight) {}
 };
 
 
