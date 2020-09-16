@@ -3,46 +3,26 @@
 
 using std::map;
 
+enum COLOR { WHITE, GRAY, BLACK };
+
 struct Vertex {
     int _vertexCode;
     int _openTime;
     int _closeTime;
     int _component;
     Vertex* _parent;
+    COLOR _color;
     set<int> _adjList;
 };
 
 struct Graph {
     vector<vector<int>> _adjMatrix;
     map<int, Vertex*> _mapVertex;
+    int _time;
 
     explicit Graph(const vector<Edge>& );
+    explicit Graph(const vector<Vertex>& );
     ~Graph();
 };
 
-vector<Edge> parseFileToGraph(const string& fileName) {
-    auto vecEdges = vector<Edge>();
-    std::ifstream inFile;
-    try {
-        inFile.open(fileName);
-    } catch (std::exception& e) {
-        std::cerr << "Error on opening file with graph: " << e.what() << std::endl;
-        return vecEdges;
-    }
-    string buf;
-    while (std::getline(inFile, buf, '\n')) {
-        stringstream bufStream(buf);
-
-        std::getline(bufStream, buf, ' ');
-        int firstNode = stoi(buf);
-
-        std::getline(bufStream, buf, ' ');
-        int secondNode = stoi(buf);
-
-        std::getline(bufStream, buf, ' ');
-        int weight = stoi(buf);
-
-        vecEdges.emplace_back(Edge(firstNode, secondNode, weight));
-    }
-    return vecEdges;
-}
+vector<Edge> parseFileToEdgesVec(const string& );

@@ -1,9 +1,10 @@
 #include "graph.hpp"
 
 Graph::Graph(const vector<Edge>& vecEdges) {
-    vector<Edge>
-    stringstream stream(strGraph);
     string buff;
+    for (auto& edge : vecEdges) {
+
+    }
     while (std::getline(stream, buff, '\n')) {
         if (buff.size() == 1) {
             auto* vertex = new Vertex();
@@ -46,3 +47,36 @@ Graph::~Graph() {
     }
 }
 
+Graph::Graph(const vector<Vertex>& vecVertex) {
+    _adjMatrix = vector<vector<int>>(vecVertex.size());
+    for (auto& vertex : vecVertex) {
+        auto
+    }
+}
+
+vector<Edge> parseFileToEdgesVec(const string& fileName) {
+    auto vecEdges = vector<Edge>();
+    std::ifstream inFile;
+    try {
+        inFile.open(fileName);
+    } catch (std::exception& e) {
+        std::cerr << "Error on opening file with graph: " << e.what() << std::endl;
+        return vecEdges;
+    }
+    string buf;
+    while (std::getline(inFile, buf, '\n')) {
+        stringstream bufStream(buf);
+
+        std::getline(bufStream, buf, ' ');
+        int firstNode = stoi(buf);
+
+        std::getline(bufStream, buf, ' ');
+        int secondNode = stoi(buf);
+
+        std::getline(bufStream, buf, ' ');
+        int weight = stoi(buf);
+
+        vecEdges.emplace_back(Edge(firstNode, secondNode, weight));
+    }
+    return vecEdges;
+}
