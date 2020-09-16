@@ -1,12 +1,12 @@
 #include "graph.hpp"
 
-Graph::Graph(const string& strGraph) {
-
+Graph::Graph(const vector<Edge>& vecEdges) {
+    vector<Edge>
     stringstream stream(strGraph);
     string buff;
-    while (std::getline(stream, buff, ',')) {
+    while (std::getline(stream, buff, '\n')) {
         if (buff.size() == 1) {
-            Vertex* vertex = new Vertex();
+            auto* vertex = new Vertex();
             vertex->_vertexCode = buff[0];
             vertex->_openTime = 0;
             vertex->_closeTime = 0;
@@ -45,3 +45,4 @@ Graph::~Graph() {
         delete _mapVertex[it.first];
     }
 }
+

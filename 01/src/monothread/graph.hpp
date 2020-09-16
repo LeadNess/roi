@@ -1,12 +1,7 @@
-#include <string>
-#include <vector>
 #include <map>
-#include <set>
+#include "../generator/generator.hpp"
 
-using std::string;
-using std::vector;
 using std::map;
-using std::set;
 
 struct Vertex {
     int _vertexCode;
@@ -21,6 +16,33 @@ struct Graph {
     vector<vector<int>> _adjMatrix;
     map<int, Vertex*> _mapVertex;
 
-    explicit Graph(const string& );
+    explicit Graph(const vector<Edge>& );
     ~Graph();
 };
+
+vector<Edge> parseFileToGraph(const string& fileName) {
+    auto vecEdges = vector<Edge>();
+    std::ifstream inFile;
+    try {
+        inFile.open(fileName);
+    } catch (std::exception& e) {
+        std::cerr << "Error on opening file with graph: " << e.what() << std::endl;
+        return vecEdges;
+    }
+    string buf;
+    while (std::getline(inFile, buf, '\n')) {
+        stringstream bufStream(buf);
+
+        std::getline(bufStream, buf, ' ');
+        int firstNode = stoi(buf);
+
+        std::getline(bufStream, buf, ' ');
+        int secondNode = stoi(buf);
+
+        std::getline(bufStream, buf, ' ');
+        int weight = stoi(buf);
+
+        vecEdges.emplace_back(Edge(firstNode, secondNode, weight));
+    }
+    return vecEdges;
+}
