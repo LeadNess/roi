@@ -3,31 +3,34 @@
 #include <utility>
 
 Graph::Graph(const vector<Edge>& vecEdges) {
-    auto mapNodes = map<int, int>(); // map<nodeCode, nodeIndexInAdjMatrix>
+    auto mapNodes = map<int, int>(); // map<nodeCode, node>
     auto mapNode2Edges = map<int, vector<pair<int, int>>>(); // map<node, vector<pair<node, edgeWeight>>
     int counter = 0;
     for (auto& edge : vecEdges) {
         if (mapNodes.find(edge._secondNode) == mapNodes.end()) {
-            mapNodes[counter++] = edge._secondNode;
+            mapNodes[edge._secondNode] = counter;
+            counter++;
         }
         if (mapNodes.find(edge._firstNode) == mapNodes.end()) {
-            mapNodes[counter++] = edge._firstNode;
+            mapNodes[edge._firstNode] = counter;
+            counter++;
         } else {
             int firstNode = mapNodes[edge._firstNode];
             int secondNode = mapNodes[edge._secondNode];
             mapNode2Edges[firstNode].emplace_back(make_pair(secondNode, edge._weight));
         }
     }
-    mapNodes.clear();
 
     vector<int> vecNodes;
-    for (auto& mapIt : mapNode2Edges) {
-        vecNodes.emplace_back(mapIt.first);
+    for (auto& mapIt : mapNodes) {
+        vecNodes.emplace_back(mapIt.second);
         auto mapEdges = map<int,int>();
-        for (auto& vecIt : mapIt.second) {
-            mapEdges.insert(make_pair(vecIt.first, vecIt.second));
+        if (mapNode2Edges.find(mapIt.second) != mapNode2Edges.end()) {
+            for (auto& vecIt : mapNode2Edges[mapIt.second]) {
+                mapEdges.insert(make_pair(vecIt.first, vecIt.second));
+            }
         }
-        _mapNodes[mapIt.first] = new Node(mapIt.first, mapEdges);
+        _mapNodes[mapIt.second] = new Node(mapIt.second, mapEdges);
     }
 
     _adjMatrix = vector<vector<int>>(_mapNodes.size());
@@ -53,7 +56,7 @@ Graph::Graph(const vector<Node*>& vecNodes) {
         vecVert.emplace_back(node->_nodeCode);
         _mapNodes[node->_nodeCode] = node;
     }
-
+    // TODO: graphs with 1 node
     _adjMatrix = vector<vector<int>>(_mapNodes.size());
     for (int i = 0; i < _mapNodes.size(); i++) {
         _adjMatrix[i] = vector<int>(_mapNodes.size());
@@ -66,8 +69,8 @@ Graph::Graph(const vector<Node*>& vecNodes) {
         }
     }
 
-    for (auto& vertex: _mapNodes) {
-        vertex.second->_component = -1;
+    for (auto& node: _mapNodes) {
+        node.second->_component = -1;
     }
 }
 
@@ -81,40 +84,43 @@ Graph::Graph(vector<vector<int>> adjMatrix) {
         }
     }
 
-    auto mapNodes = map<int, int>(); // map<nodeCode, nodeIndexInAdjMatrix>
+    auto mapNodes = map<int, int>(); // map<nodeCode, node>
     auto mapNode2Edges = map<int, vector<pair<int, int>>>(); // map<node, vector<pair<node, edgeWeight>>
     int counter = 0;
     for (auto& edge : vecEdges) {
         if (mapNodes.find(edge._secondNode) == mapNodes.end()) {
-            mapNodes[counter++] = edge._secondNode;
+            mapNodes[edge._secondNode] = counter;
+            counter++;
         }
         if (mapNodes.find(edge._firstNode) == mapNodes.end()) {
-            mapNodes[counter++] = edge._firstNode;
+            mapNodes[edge._firstNode] = counter;
+            counter++;
         } else {
             int firstNode = mapNodes[edge._firstNode];
             int secondNode = mapNodes[edge._secondNode];
             mapNode2Edges[firstNode].emplace_back(make_pair(secondNode, edge._weight));
         }
     }
-    mapNodes.clear();
 
     vector<int> vecNodes;
-    for (auto& mapIt : mapNode2Edges) {
-        vecNodes.emplace_back(mapIt.first);
+    for (auto& mapIt : mapNodes) {
+        vecNodes.emplace_back(mapIt.second);
         auto mapEdges = map<int,int>();
-        for (auto& vecIt : mapIt.second) {
-            mapEdges.insert(make_pair(vecIt.first, vecIt.second));
+        if (mapNode2Edges.find(mapIt.second) != mapNode2Edges.end()) {
+            for (auto& vecIt : mapNode2Edges[mapIt.second]) {
+                mapEdges.insert(make_pair(vecIt.first, vecIt.second));
+            }
         }
-        _mapNodes[mapIt.first] = new Node(mapIt.first, mapEdges);
+        _mapNodes[mapIt.second] = new Node(mapIt.second, mapEdges);
     }
 
     _adjMatrix = adjMatrix;
 }
 
 Graph::~Graph() {
-    for (auto& it : _mapNodes) {
+    /*for (auto& it : _mapNodes) {
         delete _mapNodes[it.first];
-    }
+    }*/
 }
 
 vector<Edge> Graph::getEdgesVec() {

@@ -1,10 +1,10 @@
 #include "dijkstra.hpp"
 
 Graph RemoveExtraEdges(Graph &graph) {
-    if (!BellmanFord(graph, graph._mapNodes[0])) {
+    /*if (!BellmanFord(graph, graph._mapNodes[0])) {
         std::cout << "The input graph contains a cycle with a negative weight" << std::endl;
         return Graph(vector<vector<int>>());
-    }
+    }*/
     auto vecEdges = graph.getEdgesVec();
     for (auto& mapIt : graph._mapNodes) {
         Dijkstra(graph, mapIt.second);
@@ -18,6 +18,7 @@ Graph RemoveExtraEdges(Graph &graph) {
             cell = 0;
         }
     }
+    // TODO: debug it
     for (auto& mapIt : graph._mapNodes) {
         Node *node = mapIt.second;
         while(node != nullptr) {

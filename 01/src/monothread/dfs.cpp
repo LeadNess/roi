@@ -29,7 +29,7 @@ void DFSVisit(Graph &graph, Node *u, map<int, vector<Node*>> &mapComponents, int
     for (auto& mapIt : u->_mapEdges) {
         if (graph._mapNodes[mapIt.first]->_color == WHITE) {
             graph._mapNodes[mapIt.first]->_parent = u;
-            DFSVisit(graph, graph._mapNodes[mapIt.first], componentCount);
+            DFSVisit(graph, graph._mapNodes[mapIt.first], mapComponents, componentCount);
         }
     }
 
@@ -90,7 +90,7 @@ vector<Graph> getStronglyConnectedComponents(Graph& g) {
 
     auto vecGraph = vector<Graph>();
     for (auto& mapIt : mapComponents) {
-        vecGraph.emplace_back(Graph(mapIt.second));
+        vecGraph.emplace_back(std::move(Graph(mapIt.second)));
     }
 
     return vecGraph;
