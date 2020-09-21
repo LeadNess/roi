@@ -6,10 +6,10 @@ void DFSVisit(Graph &graph, Node *u) {
     u->_openTime = graph._time;
     u->_color = GRAY;
 
-    for (auto& vertex : u->_adjList) {
-        if (graph._mapNodes[vertex]->_color == WHITE) {
-            graph._mapNodes[vertex]->_parent = u;
-            DFSVisit(graph, graph._mapNodes[vertex]);
+    for (auto& mapIt : u->_mapEdges) {
+        if (graph._mapNodes[mapIt.first]->_color == WHITE) {
+            graph._mapNodes[mapIt.first]->_parent = u;
+            DFSVisit(graph, graph._mapNodes[mapIt.first]);
         }
     }
 
@@ -18,18 +18,18 @@ void DFSVisit(Graph &graph, Node *u) {
     u->_closeTime = graph._time;
 }
 
-void DFSVisit(Graph &graph, Node *u, map<int, Graph> &mapComponents, int componentCount) {
+void DFSVisit(Graph &graph, Node *u, map<int, vector<Node*>> &mapComponents, int componentCount) {
     graph._time++;
 
     u->_openTime = graph._time;
     u->_color = GRAY;
     u->_component = componentCount;
-    mapComponents[componentCount].addNode(u);
+    mapComponents[componentCount].emplace_back(u);
 
-    for (auto& vertex : u->_adjList) {
-        if (graph._mapNodes[vertex]->_color == WHITE) {
-            graph._mapNodes[vertex]->_parent = u;
-            DFSVisit(graph, graph._mapNodes[vertex], componentCount);
+    for (auto& mapIt : u->_mapEdges) {
+        if (graph._mapNodes[mapIt.first]->_color == WHITE) {
+            graph._mapNodes[mapIt.first]->_parent = u;
+            DFSVisit(graph, graph._mapNodes[mapIt.first], componentCount);
         }
     }
 
@@ -79,13 +79,19 @@ vector<Graph> getStronglyConnectedComponents(Graph& g) {
     }
 
     g._time = 0;
-    int componentCount = (g._adjMatrix.size()) ? 1 : 0;
-    map<int, Graph> mapComponents;
+    int componentCount = 0;
+    auto mapComponents = map<int, vector<Node*>>();
 
     for (auto it = mapVer.rbegin(); it != mapVer.rend(); it++)
         if (g._mapNodes[it->second->_nodeCode]->_color == WHITE) {
             DFSVisit(g, g._mapNodes[it->second->_nodeCode], mapComponents, componentCount);
             componentCount++;
         }
-    return componentCount;
+
+    auto vecGraph = vector<Graph>();
+    for (auto& mapIt : mapComponents) {
+        vecGraph.emplace_back(Graph(mapIt.second));
+    }
+
+    return vecGraph;
 }

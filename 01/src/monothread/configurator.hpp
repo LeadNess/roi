@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include <args.hpp>
-#include "graph.hpp"
+#include "dfs.hpp"
 
 struct AlgorithmArgs {
     std::string _inputFilesName;
@@ -24,7 +24,7 @@ struct AlgorithmArgs {
         std::cout << "Output file name: " << _outputFileName << std::endl;
 
         auto vecEdges = parseFileToEdgesVec(_inputFilesName);
-        auto graph = Graph(vecEdges);
-
+        auto graph = Graph(vecEdges); // get Graph
+        auto vecGraph = getStronglyConnectedComponents(graph);
     }
 };
