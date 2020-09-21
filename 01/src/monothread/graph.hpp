@@ -1,28 +1,34 @@
 #include <map>
+#include <utility>
 #include "../generator/generator.hpp"
 
 using std::map;
+using std::make_pair;
 
 enum COLOR { WHITE, GRAY, BLACK };
 
-struct Vertex {
-    int _vertexCode;
+struct Node {
+    int _nodeCode;
     int _openTime;
     int _closeTime;
     int _component;
-    Vertex* _parent;
+    Node* _parent;
     COLOR _color;
     set<int> _adjList;
+
+    Node(const int &nodeCode, set<int> adjList): _nodeCode(nodeCode), _adjList(std::move(adjList)), _parent(nullptr) {}
 };
 
 struct Graph {
     vector<vector<int>> _adjMatrix;
-    map<int, Vertex*> _mapVertex;
+    map<int, Node*> _mapVertex;
     int _time;
 
     explicit Graph(const vector<Edge>& );
-    explicit Graph(const vector<Vertex>& );
+    explicit Graph(const vector<Node>& );
     ~Graph();
+
+    void addNode(Node& );
 };
 
 vector<Edge> parseFileToEdgesVec(const string& );
