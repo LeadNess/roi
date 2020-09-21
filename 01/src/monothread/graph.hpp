@@ -14,21 +14,20 @@ struct Node {
     int _component;
     Node* _parent;
     COLOR _color;
-    set<int> _adjList;
+    map<int, int> _mapEdges;
 
-    Node(const int &nodeCode, set<int> adjList): _nodeCode(nodeCode), _adjList(std::move(adjList)), _parent(nullptr) {}
+    Node(const int &nodeCode, map<int, int> mapEdges):
+        _nodeCode(nodeCode), _mapEdges(std::move(mapEdges)), _parent(nullptr) {}
 };
 
 struct Graph {
     vector<vector<int>> _adjMatrix;
-    map<int, Node*> _mapVertex;
+    map<int, Node*> _mapNodes;
     int _time;
 
     explicit Graph(const vector<Edge>& );
-    explicit Graph(const vector<Node>& );
+    explicit Graph(const vector<Node*>& );
     ~Graph();
-
-    void addNode(Node& );
 };
 
 vector<Edge> parseFileToEdgesVec(const string& );

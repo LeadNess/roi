@@ -7,9 +7,9 @@ void DFSVisit(Graph &graph, Node *u) {
     u->_color = GRAY;
 
     for (auto& vertex : u->_adjList) {
-        if (graph._mapVertex[vertex]->_color == WHITE) {
-            graph._mapVertex[vertex]->_parent = u;
-            DFSVisit(graph, graph._mapVertex[vertex]);
+        if (graph._mapNodes[vertex]->_color == WHITE) {
+            graph._mapNodes[vertex]->_parent = u;
+            DFSVisit(graph, graph._mapNodes[vertex]);
         }
     }
 
@@ -27,9 +27,9 @@ void DFSVisit(Graph &graph, Node *u, map<int, Graph> &mapComponents, int compone
     mapComponents[componentCount].addNode(u);
 
     for (auto& vertex : u->_adjList) {
-        if (graph._mapVertex[vertex]->_color == WHITE) {
-            graph._mapVertex[vertex]->_parent = u;
-            DFSVisit(graph, graph._mapVertex[vertex], componentCount);
+        if (graph._mapNodes[vertex]->_color == WHITE) {
+            graph._mapNodes[vertex]->_parent = u;
+            DFSVisit(graph, graph._mapNodes[vertex], componentCount);
         }
     }
 
@@ -40,14 +40,14 @@ void DFSVisit(Graph &graph, Node *u, map<int, Graph> &mapComponents, int compone
 
 void DFS(Graph &graph) {
 
-    for (auto& vertex : graph._mapVertex) {
+    for (auto& vertex : graph._mapNodes) {
         vertex.second->_color = WHITE;
         vertex.second->_parent = nullptr;
     }
 
     graph._time = 0;
 
-    for (auto& vertex : graph._mapVertex)
+    for (auto& vertex : graph._mapNodes)
         if (vertex.second->_color == WHITE)
             DFSVisit(graph, vertex.second);
 }
@@ -69,11 +69,11 @@ vector<Graph> getStronglyConnectedComponents(Graph& g) {
     auto gTrans = Graph(vector<Edge>());
     gTrans._adjMatrix = transformedAdjMatrix;
     map<int,Node*> mapVer;
-    for (auto& it : g._mapVertex)
+    for (auto& it : g._mapNodes)
         mapVer[it.second->_closeTime] = it.second;
 
 
-    for (auto& vertex : g._mapVertex) {
+    for (auto& vertex : g._mapNodes) {
         vertex.second->_color = WHITE;
         vertex.second->_parent = nullptr;
     }
@@ -83,8 +83,8 @@ vector<Graph> getStronglyConnectedComponents(Graph& g) {
     map<int, Graph> mapComponents;
 
     for (auto it = mapVer.rbegin(); it != mapVer.rend(); it++)
-        if (g._mapVertex[it->second->_nodeCode]->_color == WHITE) {
-            DFSVisit(g, g._mapVertex[it->second->_nodeCode], mapComponents, componentCount);
+        if (g._mapNodes[it->second->_nodeCode]->_color == WHITE) {
+            DFSVisit(g, g._mapNodes[it->second->_nodeCode], mapComponents, componentCount);
             componentCount++;
         }
     return componentCount;

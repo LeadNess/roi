@@ -18,49 +18,61 @@ Graph::Graph(const vector<Edge>& vecEdges) {
     }
     mapNodes.clear();
 
-    vector<int> vecVert;
+    vector<int> vecNodes;
     for (auto& mapIt : mapNode2Edges) {
-        vecVert.emplace_back(mapIt.first);
-        auto adjList = set<int>();
+        vecNodes.emplace_back(mapIt.first);
+        auto mapEdges = map<int,int>();
         for (auto& vecIt : mapIt.second) {
-            adjList.insert(vecIt.first);
+            mapEdges.insert(make_pair(vecIt.first, vecIt.second));
         }
-        _mapVertex[mapIt.first] = new Node(mapIt.first, adjList);
+        _mapNodes[mapIt.first] = new Node(mapIt.first, mapEdges);
     }
 
-    _adjMatrix = vector<vector<int>>(_mapVertex.size());
-    for (int i = 0; i < _mapVertex.size(); i++) {
-        _adjMatrix[i] = vector<int>(_mapVertex.size());
-        for (int t = 0; t < _mapVertex.size(); t++) {
-            if (_mapVertex[vecVert[i]]->_adjList.find(vecVert[t]) != _mapVertex[vecVert[i]]->_adjList.end()) {
-                _adjMatrix[i][t] = 1;
+    _adjMatrix = vector<vector<int>>(_mapNodes.size());
+    for (int i = 0; i < _mapNodes.size(); i++) {
+        _adjMatrix[i] = vector<int>(_mapNodes.size());
+        for (int t = 0; t < _mapNodes.size(); t++) {
+            if (_mapNodes[vecNodes[i]]->_mapEdges.find(vecNodes[t]) != _mapNodes[vecNodes[i]]->_mapEdges.end()) {
+                _adjMatrix[i][t] = _mapNodes[vecNodes[i]]->_mapEdges[vecNodes[t]];
             } else {
                 _adjMatrix[i][t] = 0;
             }
         }
     }
 
-    for (auto& vertex: _mapVertex) {
+    for (auto& vertex: _mapNodes) {
+        vertex.second->_component = -1;
+    }
+}
+
+Graph::Graph(const vector<Node*>& vecNodes) {
+    vector<int> vecVert;
+    for (Node *node : vecNodes) {
+        vecVert.emplace_back(node->_nodeCode);
+        _mapNodes[node->_nodeCode] = node;
+    }
+
+    _adjMatrix = vector<vector<int>>(_mapNodes.size());
+    for (int i = 0; i < _mapNodes.size(); i++) {
+        _adjMatrix[i] = vector<int>(_mapNodes.size());
+        for (int t = 0; t < _mapNodes.size(); t++) {
+            if (_mapNodes[vecVert[i]]->_mapEdges.find(vecVert[t]) != _mapNodes[vecVert[i]]->_mapEdges.end()) {
+                _adjMatrix[i][t] = _mapNodes[vecVert[i]]->_mapEdges[vecVert[t]];
+            } else {
+                _adjMatrix[i][t] = 0;
+            }
+        }
+    }
+
+    for (auto& vertex: _mapNodes) {
         vertex.second->_component = -1;
     }
 }
 
 Graph::~Graph() {
-    for (auto& it : _mapVertex) {
-        delete _mapVertex[it.first];
+    for (auto& it : _mapNodes) {
+        delete _mapNodes[it.first];
     }
-}
-
-Graph::Graph(const vector<Node>& vecVertex) {
-    _adjMatrix = vector<vector<int>>(vecVertex.size());
-    for (auto& vertex : vecVertex) {
-        auto
-    }
-}
-
-void Graph::addNode(Node &) {
-    _mapVertex[vertex._vertexCode] = &vertex;
-    _adjMatrix
 }
 
 vector<Edge> parseFileToEdgesVec(const string& fileName) {
