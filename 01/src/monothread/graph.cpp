@@ -75,6 +75,25 @@ Graph::~Graph() {
     }
 }
 
+void Graph::updateAdjacencyMatrix() {
+    vector<int> vecVert;
+    for (auto& it : _mapNodes) {
+        vecVert.emplace_back(it.second->_nodeCode);
+    }
+
+    _adjMatrix = vector<vector<int>>(_mapNodes.size());
+    for (int i = 0; i < _mapNodes.size(); i++) {
+        _adjMatrix[i] = vector<int>(_mapNodes.size());
+        for (int t = 0; t < _mapNodes.size(); t++) {
+            if (_mapNodes[vecVert[i]]->_mapEdges.find(vecVert[t]) != _mapNodes[vecVert[i]]->_mapEdges.end()) {
+                _adjMatrix[i][t] = _mapNodes[vecVert[i]]->_mapEdges[vecVert[t]];
+            } else {
+                _adjMatrix[i][t] = 0;
+            }
+        }
+    }
+}
+
 vector<Edge> parseFileToEdgesVec(const string& fileName) {
     auto vecEdges = vector<Edge>();
     std::ifstream inFile;

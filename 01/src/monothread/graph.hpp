@@ -9,9 +9,10 @@ enum COLOR { WHITE, GRAY, BLACK };
 
 struct Node {
     int _nodeCode;
-    int _openTime;
-    int _closeTime;
-    int _component;
+    int _openTime{};
+    int _closeTime{};
+    int _component{};
+    int _shortestPath{};
     Node* _parent;
     COLOR _color;
     map<int, int> _mapEdges;
@@ -28,6 +29,8 @@ struct Graph {
     explicit Graph(const vector<Edge>& );
     explicit Graph(const vector<Node*>& );
     ~Graph();
+
+    void updateAdjacencyMatrix();
 };
 
 vector<Edge> parseFileToEdgesVec(const string& );
