@@ -2,4 +2,5 @@
 
 int main(int argc, char const *argv[]) {
     args::parse<GeneratorArgs>(argc, argv);
+    return 0;
 }

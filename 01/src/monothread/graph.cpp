@@ -1,5 +1,7 @@
 #include "graph.hpp"
 
+#include <utility>
+
 Graph::Graph(const vector<Edge>& vecEdges) {
     auto mapNodes = map<int, int>(); // map<nodeCode, nodeIndexInAdjMatrix>
     auto mapNode2Edges = map<int, vector<pair<int, int>>>(); // map<node, vector<pair<node, edgeWeight>>
@@ -69,10 +71,60 @@ Graph::Graph(const vector<Node*>& vecNodes) {
     }
 }
 
+Graph::Graph(vector<vector<int>> adjMatrix) {
+    auto vecEdges = vector<Edge>();
+    for (int i = 0; i < adjMatrix.size(); i++) {
+        for (int t = 0; t < adjMatrix[i].size(); t++) {
+            if (adjMatrix[i][t]) {
+                vecEdges.emplace_back(Edge(i, t, adjMatrix[i][t]));
+            }
+        }
+    }
+
+    auto mapNodes = map<int, int>(); // map<nodeCode, nodeIndexInAdjMatrix>
+    auto mapNode2Edges = map<int, vector<pair<int, int>>>(); // map<node, vector<pair<node, edgeWeight>>
+    int counter = 0;
+    for (auto& edge : vecEdges) {
+        if (mapNodes.find(edge._secondNode) == mapNodes.end()) {
+            mapNodes[counter++] = edge._secondNode;
+        }
+        if (mapNodes.find(edge._firstNode) == mapNodes.end()) {
+            mapNodes[counter++] = edge._firstNode;
+        } else {
+            int firstNode = mapNodes[edge._firstNode];
+            int secondNode = mapNodes[edge._secondNode];
+            mapNode2Edges[firstNode].emplace_back(make_pair(secondNode, edge._weight));
+        }
+    }
+    mapNodes.clear();
+
+    vector<int> vecNodes;
+    for (auto& mapIt : mapNode2Edges) {
+        vecNodes.emplace_back(mapIt.first);
+        auto mapEdges = map<int,int>();
+        for (auto& vecIt : mapIt.second) {
+            mapEdges.insert(make_pair(vecIt.first, vecIt.second));
+        }
+        _mapNodes[mapIt.first] = new Node(mapIt.first, mapEdges);
+    }
+
+    _adjMatrix = adjMatrix;
+}
+
 Graph::~Graph() {
     for (auto& it : _mapNodes) {
         delete _mapNodes[it.first];
     }
+}
+
+vector<Edge> Graph::getEdgesVec() {
+    auto vecEdges = vector<Edge>();
+    for (auto& mapIt : _mapNodes) {
+        for (auto& mapEdge : mapIt.second->_mapEdges) {
+            vecEdges.emplace_back(Edge(mapIt.first, mapEdge.first, mapEdge.second));
+        }
+    }
+    return vecEdges;
 }
 
 vector<Edge> parseFileToEdgesVec(const string& fileName) {

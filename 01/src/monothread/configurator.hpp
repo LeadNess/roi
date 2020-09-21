@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include <args.hpp>
-#include "dfs.hpp"
+#include "extra_paths.hpp"
 
 struct AlgorithmArgs {
     std::string _inputFilesName;

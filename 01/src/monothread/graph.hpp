@@ -24,11 +24,14 @@ struct Node {
 struct Graph {
     vector<vector<int>> _adjMatrix;
     map<int, Node*> _mapNodes;
-    int _time;
+    int _time{};
 
     explicit Graph(const vector<Edge>& );
     explicit Graph(const vector<Node*>& );
+    explicit Graph(vector<vector<int>>  );
     ~Graph();
+
+    vector<Edge> getEdgesVec();
 };
 
 vector<Edge> parseFileToEdgesVec(const string& );
