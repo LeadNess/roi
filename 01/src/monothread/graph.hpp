@@ -29,8 +29,6 @@ struct Graph {
     explicit Graph(const vector<Edge>& );
     explicit Graph(const vector<Node*>& );
     ~Graph();
-
-    void updateAdjacencyMatrix();
 };
 
 vector<Edge> parseFileToEdgesVec(const string& );
