@@ -1,8 +1,9 @@
+#include <limits>
 #include "dfs.hpp"
 
 void initializeSingleSource(Graph &graph, Node *s) {
     for (auto& mapIt : graph._mapNodes) {
-        graph._mapNodes[mapIt.first]->_shortestPath = -1;
+        graph._mapNodes[mapIt.first]->_shortestPath = std::numeric_limits<int>::max();
         graph._mapNodes[mapIt.first]->_parent = nullptr;
     }
     s->_shortestPath = 0;
@@ -11,7 +12,7 @@ void initializeSingleSource(Graph &graph, Node *s) {
 void relax(Node* uNode, Node* vNode, int weight) {
     if (vNode->_shortestPath > uNode->_shortestPath + weight) {
         vNode->_shortestPath = uNode->_shortestPath + weight;
-        uNode->_parent = uNode;
+        vNode->_parent = uNode;
     }
 }
 

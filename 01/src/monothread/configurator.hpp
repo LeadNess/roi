@@ -31,5 +31,6 @@ struct AlgorithmArgs {
         for (Graph &g : vecGraphs) {
             vecUpdGraphs.emplace_back(RemoveExtraEdges(g));
         }
+        std::cout << "End!" << std::endl;
     }
 };

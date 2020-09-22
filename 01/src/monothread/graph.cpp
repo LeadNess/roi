@@ -14,11 +14,10 @@ Graph::Graph(const vector<Edge>& vecEdges) {
         if (mapNodes.find(edge._firstNode) == mapNodes.end()) {
             mapNodes[edge._firstNode] = counter;
             counter++;
-        } else {
-            int firstNode = mapNodes[edge._firstNode];
-            int secondNode = mapNodes[edge._secondNode];
-            mapNode2Edges[firstNode].emplace_back(make_pair(secondNode, edge._weight));
         }
+        int firstNode = mapNodes[edge._firstNode];
+        int secondNode = mapNodes[edge._secondNode];
+        mapNode2Edges[firstNode].emplace_back(make_pair(secondNode, edge._weight));
     }
 
     vector<int> vecNodes;
@@ -51,11 +50,23 @@ Graph::Graph(const vector<Edge>& vecEdges) {
 }
 
 Graph::Graph(const vector<Node*>& vecNodes) {
-    vector<int> vecVert;
+    auto mapNodeCode2Index = map<int,int>();
+    int counter = 0;
     for (Node *node : vecNodes) {
-        vecVert.emplace_back(node->_nodeCode);
-        _mapNodes[node->_nodeCode] = node;
+        mapNodeCode2Index[node->_nodeCode] = counter;
+        counter++;
     }
+
+    auto vecVert = vector<int>();
+    for (Node *node : vecNodes) {
+        vecVert.emplace_back(mapNodeCode2Index[node->_nodeCode]);
+        auto mapEdges = map<int,int>();
+        for (auto& mapIt : node->_mapEdges) {
+            mapEdges.insert(make_pair(mapNodeCode2Index[mapIt.first], mapIt.second));
+        }
+        _mapNodes[mapNodeCode2Index[node->_nodeCode]] = new Node(mapNodeCode2Index[node->_nodeCode], mapEdges);
+    }
+
     // TODO: graphs with 1 node
     _adjMatrix = vector<vector<int>>(_mapNodes.size());
     for (int i = 0; i < _mapNodes.size(); i++) {
