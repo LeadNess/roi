@@ -31,8 +31,8 @@ struct Graph {
     explicit Graph(vector<vector<int>>  );
     ~Graph();
 
-    void updateAdjustmentMatrix();
-    vector<Edge> getEdgesVec();
+    size_t getNodesCount() const;
+    vector<Edge> getEdgesVec() const;
 };
 
 vector<Edge> parseFileToEdgesVec(const string& );

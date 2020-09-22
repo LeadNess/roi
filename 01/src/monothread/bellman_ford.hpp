@@ -5,6 +5,7 @@ void initializeSingleSource(Graph &graph, Node *s) {
     for (auto& mapIt : graph._mapNodes) {
         graph._mapNodes[mapIt.first]->_shortestPath = std::numeric_limits<int>::max();
         graph._mapNodes[mapIt.first]->_parent = nullptr;
+        graph._mapNodes[mapIt.first]->_color = WHITE;
     }
     s->_shortestPath = 0;
 }

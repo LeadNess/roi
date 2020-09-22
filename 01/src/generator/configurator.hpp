@@ -15,8 +15,8 @@ struct GeneratorArgs {
 
     template<class F>
     void parse(F f) {
-        f(_outputFilesNamePrefix, "--output", "-o", args::help("Output files names prefix"), args::required());
         f(_cfgFileName, "--config", "-c", args::help("Config file name"), args::required());
+        f(_outputFilesNamePrefix, "--output", "-o", args::help("Output files names prefix"), args::required());
     }
 
     void run() {

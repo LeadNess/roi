@@ -133,7 +133,7 @@ Graph::~Graph() {
     }*/
 }
 
-vector<Edge> Graph::getEdgesVec() {
+vector<Edge> Graph::getEdgesVec() const {
     auto vecEdges = vector<Edge>();
     for (auto& mapIt : _mapNodes) {
         for (auto& mapEdge : mapIt.second->_mapEdges) {
@@ -141,6 +141,10 @@ vector<Edge> Graph::getEdgesVec() {
         }
     }
     return vecEdges;
+}
+
+size_t Graph::getNodesCount() const {
+    return _mapNodes.size();
 }
 
 vector<Edge> parseFileToEdgesVec(const string& fileName) {
