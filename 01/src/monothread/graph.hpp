@@ -31,6 +31,7 @@ struct Graph {
     explicit Graph(vector<vector<int>>  );
     ~Graph();
 
+    void updateAdjustmentMatrix();
     vector<Edge> getEdgesVec();
 };
 

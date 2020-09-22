@@ -8,7 +8,7 @@ Graph RemoveExtraEdges(Graph &graph) {
     auto mapEdges = map<pair<int,int>,int>();
     auto vecEdges = graph.getEdgesVec();
     for (auto& mapIt : graph._mapNodes) {
-        Dijkstra(graph, mapIt.second, mapEdges);
+        ShortestParts(graph, mapIt.second, mapEdges);
     }
 
     auto vecEdgesUpd = vector<Edge>();

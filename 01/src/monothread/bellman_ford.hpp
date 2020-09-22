@@ -36,3 +36,31 @@ bool BellmanFord(Graph &graph, Node *sNode) {
     }
     return true;
 }
+
+void ShortestParts(Graph &graph, Node *sNode, map<pair<int,int>,int>& mapEdges) {
+    initializeSingleSource(graph, sNode);
+    for (int count = 0; count < graph._mapNodes.size() - 1; count++) {
+        for (int i = 0; i < graph._adjMatrix.size(); i++) {
+            for (int t = 0; t < graph._adjMatrix[i].size(); t++) {
+                if (graph._adjMatrix[i][t]) {
+                    relax(graph._mapNodes[i], graph._mapNodes[t], graph._adjMatrix[i][t]);
+                }
+            }
+        }
+    }
+
+    for (auto& mapIt : graph._mapNodes) {
+        Node *node = mapIt.second;
+        while(node != nullptr) {
+            if (node->_parent == nullptr || node->_color == BLACK) {
+                if (graph._mapNodes.size() == 1) {
+                    mapEdges[make_pair(mapIt.first, mapIt.first)] = 0;
+                }
+                break;
+            }
+            mapEdges[make_pair(node->_parent->_nodeCode, node->_nodeCode)] = node->_parent->_mapEdges[node->_nodeCode];
+            node->_color = BLACK;
+            node = node->_parent;
+        }
+    }
+}

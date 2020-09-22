@@ -67,7 +67,6 @@ Graph::Graph(const vector<Node*>& vecNodes) {
         _mapNodes[mapNodeCode2Index[node->_nodeCode]] = new Node(mapNodeCode2Index[node->_nodeCode], mapEdges);
     }
 
-    // TODO: graphs with 1 node
     _adjMatrix = vector<vector<int>>(_mapNodes.size());
     for (int i = 0; i < _mapNodes.size(); i++) {
         _adjMatrix[i] = vector<int>(_mapNodes.size());

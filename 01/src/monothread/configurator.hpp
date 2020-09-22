@@ -23,7 +23,6 @@ struct AlgorithmArgs {
         std::cout << "Input files names: " << _inputFilesName << std::endl;
         std::cout << "Output file name: " << _outputFileName << std::endl;
 
-        _inputFilesName = "/home/leadness/Study/roi/01/src/test10.txt";
         auto vecEdges = parseFileToEdgesVec(_inputFilesName);
         auto graph = Graph(vecEdges); // get Graph
         auto vecGraphs = getStronglyConnectedComponents(graph);
@@ -31,6 +30,8 @@ struct AlgorithmArgs {
         for (Graph &g : vecGraphs) {
             vecUpdGraphs.emplace_back(RemoveExtraEdges(g));
         }
-        std::cout << "End!" << std::endl;
+        for (int i = 0; i < vecUpdGraphs.size(); i++) {
+            std::cout << bool(vecGraphs[i]._adjMatrix == vecUpdGraphs[i]._adjMatrix);
+        }
     }
 };
