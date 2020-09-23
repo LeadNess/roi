@@ -4,8 +4,8 @@
 #include "generator.hpp"
 
 struct GeneratorArgs {
-    std::string _cfgFileName;
-    std::string _outputFilesNamePrefix;
+    string _cfgFileName;
+    string _outputFilesNamePrefix;
 
     GeneratorArgs() = default;
 
