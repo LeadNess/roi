@@ -6,12 +6,12 @@
 
 using namespace std::chrono;
 
-struct AlgorithmArgs {
+struct MultiThreadAlgorithmArgs {
     string _inputFileNamePrefix;
     string _outputFileName;
     string _cfgFileName;
 
-    AlgorithmArgs() = default;
+    MultiThreadAlgorithmArgs() = default;
 
     static const char* help() {
         return "Algorithm removing unnecessary edges in graph";
