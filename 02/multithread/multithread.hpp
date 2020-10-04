@@ -11,7 +11,7 @@ using std::ofstream;
 
 namespace MultiThread {
 
-    std::mutex mainThreadMutex;
+    std::mutex mainThreadLock;
     std::condition_variable signal;
     bool algorithmIsDone;
 
@@ -22,7 +22,7 @@ namespace MultiThread {
         }
     };
 
-    class AlgorithmResultsFile {
+    class ResultsFile {
 
         ofstream _file;
         vector<string> _vecResults;
@@ -32,7 +32,7 @@ namespace MultiThread {
 
     public:
 
-        AlgorithmResultsFile(const string& , int );
+        ResultsFile(const string& , int );
 
         void addResult(const string& , const vector<Graph>& , int );
         void writeResults();
@@ -41,7 +41,7 @@ namespace MultiThread {
 
     };
 
-    AlgorithmResultsFile::AlgorithmResultsFile(const string& fileName, int resultsCount) : _resultsCount(0) {
+    ResultsFile::ResultsFile(const string& fileName, int resultsCount) : _resultsCount(0) {
         algorithmIsDone = false;
         _vecResults = vector<string>(resultsCount);
         _vecGraphs = vector<vector<Graph>>(resultsCount);
@@ -49,20 +49,20 @@ namespace MultiThread {
         if (!_file.is_open()) throw FileIsNotOpened();
     }
 
-    void AlgorithmResultsFile::addResult(const string& result, const vector<Graph>& graph, int index) {
+    void ResultsFile::addResult(const string& result, const vector<Graph>& graph, int index) {
         _fileMutex.lock();
         _vecResults[index] = result;
         _vecGraphs[index] = graph;
         _resultsCount++;
         if (_resultsCount == _vecResults.size()) {
-            std::unique_lock<std::mutex> lock(mainThreadMutex);
+            std::unique_lock<std::mutex> lock(mainThreadLock);
             algorithmIsDone = true;
             std::notify_all_at_thread_exit(signal, std::move(lock));
         }
         _fileMutex.unlock();
     }
 
-    void AlgorithmResultsFile::writeResults() {
+    void ResultsFile::writeResults() {
         _fileMutex.lock();
         _file << "Edges count;Nodes count;Time (ms)" << std::endl;
         for (auto& result: _vecResults) {
@@ -71,11 +71,11 @@ namespace MultiThread {
         _fileMutex.unlock();
     }
 
-    vector<vector<Graph>> AlgorithmResultsFile::getProcessedGraphs() const {
+    vector<vector<Graph>> ResultsFile::getProcessedGraphs() const {
         return _vecGraphs;
     }
 
-    void AlgorithmResultsFile::close() {
+    void ResultsFile::close() {
         _fileMutex.lock();
         _file.close();
         _fileMutex.unlock();
@@ -83,11 +83,11 @@ namespace MultiThread {
 
 } // MultiThread
 
-void processGraph(string& inputFileName, MultiThread::AlgorithmResultsFile& resultsFile, int index) {
+void processGraph(const string& inputFileName, MultiThread::ResultsFile& resultsFile, int index) {
     auto vecEdges = parseFileToEdgesVec(inputFileName);
     auto graph = Graph(vecEdges); // get Graph
 
-    std::cout << "Start algorithm for graph with " << vecEdges.size() << " edges and "
+    std::cout << "Get data from " << inputFileName << " file. Start algorithm for graph with " << vecEdges.size() << " edges and "
               << graph.getNodesCount() << " nodes..." << std::endl;
 
     auto vecGraphs = getStronglyConnectedComponents(graph);

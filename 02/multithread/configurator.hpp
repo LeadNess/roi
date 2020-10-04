@@ -31,17 +31,18 @@ struct MultiThreadAlgorithmArgs {
         std::cout << "Config file: " << _cfgFileName << std::endl;
 
         auto vecCfg = parseConfig(_cfgFileName);
-        MultiThread::AlgorithmResultsFile resultsFile(_outputFileName, vecCfg.size());
+        MultiThread::ResultsFile resultsFile(_outputFileName, vecCfg.size());
         for (int i = 0; i < vecCfg.size(); i++) {
             auto inputFileName = _inputFileNamePrefix + std::to_string(vecCfg[i].edgesCount) + ".txt";
-            std::thread th(processGraph, std::ref(inputFileName), std::ref(resultsFile), i);
-            th.detach();
+            thread(processGraph, inputFileName, std::ref(resultsFile), i).detach();
         }
-        std::unique_lock<std::mutex> lock(MultiThread::mainThreadMutex);
+        std::unique_lock<std::mutex> lock(MultiThread::mainThreadLock);
         while(!MultiThread::algorithmIsDone) {
             MultiThread::signal.wait(lock);
         }
         auto processedGraphs = resultsFile.getProcessedGraphs();
+        resultsFile.writeResults();
+        resultsFile.close();
         std::cout << "Time measurements are finished. Results are written in " << _outputFileName << std::endl;
     }
 };
