@@ -32,7 +32,7 @@ namespace MultiThread {
         vector<string> _vecResults;
         vector<vector<Graph>> _vecGraphs;
         int _resultsCount;
-        std::mutex _fileMutex;
+        std::mutex _fileLock;
 
     public:
 
@@ -43,6 +43,34 @@ namespace MultiThread {
         void close();
         vector<vector<Graph>> getProcessedGraphs() const;
 
+    };
+
+    class GraphProcessor {
+
+        vector<Graph> _vecGraph;
+        int _resultsCount;
+        std::mutex _lock;
+
+    public:
+
+        GraphProcessor(int componentsCount) : _resultsCount(0) {
+            _vecGraph = vector<Graph>(componentsCount);
+        }
+
+        void addProcessedComponent(Graph& graph, int componentIndex, int graphIndex) {
+            _lock.lock();
+            _vecGraph[componentIndex] = graph;
+            _resultsCount++;
+            if (_resultsCount == _vecGraph.size()) {
+                std::unique_lock<std::mutex> lock(*vecLocks[graphIndex].get());
+                vecFlags[graphIndex] = true;
+                std::notify_all_at_thread_exit(vecSignals[graphIndex], std::move(lock));
+            }
+            _lock.unlock();
+        }
+        vector<Graph> getProcessedGraph() const {
+            return _vecGraph;
+        }
     };
 
 } // MultiThread
@@ -61,7 +89,7 @@ MultiThread::ResultsFile::ResultsFile(const string& fileName, int resultsCount) 
 }
 
 void MultiThread::ResultsFile::addResult(const string& result, const vector<Graph>& graph, int index) {
-    _fileMutex.lock();
+    _fileLock.lock();
     _vecResults[index] = result;
     _vecGraphs[index] = graph;
     _resultsCount++;
@@ -70,16 +98,16 @@ void MultiThread::ResultsFile::addResult(const string& result, const vector<Grap
         algorithmIsDone = true;
         std::notify_all_at_thread_exit(mainThreadSignal, std::move(lock));
     }
-    _fileMutex.unlock();
+    _fileLock.unlock();
 }
 
 void MultiThread::ResultsFile::writeResults() {
-    _fileMutex.lock();
+    _fileLock.lock();
     _file << "Edges count;Nodes count;Time (ms)" << std::endl;
     for (auto& result: _vecResults) {
         _file << result << std::endl;
     }
-    _fileMutex.unlock();
+    _fileLock.unlock();
 }
 
 vector<vector<Graph>> MultiThread::ResultsFile::getProcessedGraphs() const {
@@ -87,9 +115,9 @@ vector<vector<Graph>> MultiThread::ResultsFile::getProcessedGraphs() const {
 }
 
 void MultiThread::ResultsFile::close() {
-    _fileMutex.lock();
+    _fileLock.lock();
     _file.close();
-    _fileMutex.unlock();
+    _fileLock.unlock();
 }
 
 
@@ -103,7 +131,7 @@ void initLocks(int tasksCount) {
     }
 }
 
-void processGraph(const string& inputFileName, MultiThread::ResultsFile& resultsFile, int index) {
+void processGraph(const string& inputFileName, MultiThread::ResultsFile& resultsFile, int graphIndex) {
     auto vecEdges = parseFileToEdgesVec(inputFileName);
     auto graph = Graph(vecEdges); // get Graph
 
@@ -111,15 +139,23 @@ void processGraph(const string& inputFileName, MultiThread::ResultsFile& results
               << graph.getNodesCount() << " nodes..." << std::endl;
 
     auto vecGraphs = getStronglyConnectedComponents(graph);
-    auto vecUpdGraphs = vector<Graph>();
+    MultiThread::GraphProcessor processor(vecGraphs.size());
     auto start = steady_clock::now();
-    for (Graph &g : vecGraphs) {
-        vecUpdGraphs.emplace_back(RemoveExtraEdges(g));
+    for (int i = 0; i < vecGraphs.size(); i++) {
+        std::thread([&](MultiThread::GraphProcessor& processor, Graph& graph, int graphIndex, int componentIndex) {
+            auto processedGraph = RemoveExtraEdges(graph);
+            processor.addProcessedComponent(processedGraph, componentIndex, graphIndex);
+        }, std::ref(processor), std::ref(graph), graphIndex, i).detach();
     }
+    std::unique_lock<std::mutex> lock(*MultiThread::vecLocks[graphIndex].get());
+    while(!MultiThread::vecFlags[graphIndex]) {
+        MultiThread::vecSignals[graphIndex].wait(lock);
+    }
+    auto vecUpdGraphs = processor.getProcessedGraph();
     auto time = duration_cast<milliseconds>(steady_clock::now() - start).count();
     std::cout << "Finished algorithm for graph with " << vecEdges.size() << " edges and "
               << graph.getNodesCount() << " nodes in " << time << " millisecond" << std::endl;
 
     string result = to_string(vecEdges.size()) + ";" + to_string(graph.getNodesCount()) + ";" + to_string(time);
-    resultsFile.addResult(result, vecUpdGraphs, index);
+    resultsFile.addResult(result, vecUpdGraphs, graphIndex);
 }
