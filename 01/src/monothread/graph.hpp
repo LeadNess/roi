@@ -26,6 +26,7 @@ struct Graph {
     map<int, Node*> _mapNodes;
     int _time{};
 
+    explicit Graph();
     explicit Graph(const vector<Edge>& );
     explicit Graph(const vector<Node*>& );
     explicit Graph(vector<vector<int>>  );

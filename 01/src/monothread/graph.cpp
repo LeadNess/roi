@@ -127,6 +127,8 @@ Graph::Graph(vector<vector<int>> adjMatrix) {
     _adjMatrix = adjMatrix;
 }
 
+Graph::Graph(): _adjMatrix(vector<vector<int>>(0)), _mapNodes(map<int, Node*>()) {}
+
 Graph::~Graph() {
     /*for (auto& it : _mapNodes) {
         delete _mapNodes[it.first];
