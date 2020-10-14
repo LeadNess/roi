@@ -15,81 +15,70 @@ namespace MultiThread {
 
     class GraphProcessor {
 
-        vector<Graph> _vecGraph;
-        int _resultsCount;
+        map<pair<int,int>,int> _mapEdges;
         std::mutex _lock;
 
     public:
 
         explicit GraphProcessor(int );
 
-        void addProcessedComponent(Graph&);
-        vector<Graph> getProcessedGraph() const;
+        void addEdgesMap(map<pair<int,int>,int>& );
+        map<pair<int,int>,int> getProcessedEdgesMap() const;
 
     };
 
 } // MultiThread
 
-MultiThread::GraphProcessor::GraphProcessor(int componentsCount) : _resultsCount(componentsCount) {
-    _vecGraph = vector<Graph>();
+MultiThread::GraphProcessor::GraphProcessor(int nodesCount) {
+    _mapEdges = map<pair<int,int>,int>();
 }
 
-void MultiThread::GraphProcessor::addProcessedComponent(Graph& graph) {
+void MultiThread::GraphProcessor::addEdgesMap(map<pair<int,int>,int>& mapEdges) {
     _lock.lock();
-    _vecGraph.emplace_back(graph);
-    std::cout << _vecGraph.size() << "/" << _resultsCount
-              << " Component: nodes(" << graph.getNodesCount() << "), edges("
-              << graph.getEdgesVec().size() << ")" << std::endl;
-    _lock.unlock();
-    /*if (_resultsCount == _vecGraph.size()) {
-        std::unique_lock<std::mutex> lock(mainThreadLock);
-        flag = true;
-        std::notify_all_at_thread_exit(signal, std::move(lock));
-    }*/
-}
-
-vector<Graph> MultiThread::GraphProcessor::getProcessedGraph() const {
-    return _vecGraph;
-}
-
-Graph RemoveExtraEdges(Graph &graph) {
-    auto mapEdges = map<pair<int,int>,int>();
-    auto vecEdges = graph.getEdgesVec();
-    for (auto& mapIt : graph._mapNodes) {
-        ShortestParts(graph, mapIt.second, mapEdges);
+    for (auto& it : mapEdges) {
+        _mapEdges[it.first] = it.second;
     }
+    _lock.unlock();
+}
 
+map<pair<int,int>,int> MultiThread::GraphProcessor::getProcessedEdgesMap() const {
+    return _mapEdges;
+}
+
+Graph ParallelRemoveExtraEdges(Graph &graph) {
+    auto availableThreadsCount = std::thread::hardware_concurrency();
+    int delta = graph.getNodesCount() < availableThreadsCount ? 1 : round(float(graph.getNodesCount()) / availableThreadsCount);
+    auto vecThreads = vector<std::thread>();
+    MultiThread::GraphProcessor processor(graph.getNodesCount());
+
+    auto threadsCount = graph.getNodesCount() < availableThreadsCount ? graph.getNodesCount() : availableThreadsCount;
+    for (int i = 0; i < threadsCount; i++) {
+        int beginIndex = i  * delta;
+        int endIndex = (i == threadsCount - 1) ? graph.getNodesCount() - 1 : (i + 1) * delta;
+        vecThreads.emplace_back(std::thread(
+                [](MultiThread::GraphProcessor &processor, Graph& graph, int beginIndex, int endIndex) {
+                    auto copiedGraph = Graph(graph._adjMatrix);
+                    auto mapEdges = map<pair<int,int>,int>();
+
+                    auto mapIt = copiedGraph._mapNodes.begin();
+                    for (int i = 0; i < beginIndex; i++, mapIt++);
+                    for (int i = 0; i < endIndex; i++, mapIt++) {
+                        if (mapIt == copiedGraph._mapNodes.end()) {
+                            break;
+                        }
+                        ShortestParts(copiedGraph, mapIt->second, mapEdges);
+                    }
+                    processor.addEdgesMap(mapEdges);
+                },
+                std::ref(processor), std::ref(graph), beginIndex, endIndex));
+    }
+    std::for_each(vecThreads.begin(), vecThreads.end(), [&](std::thread& th) {
+        th.join();
+    });
+    auto mapEdges = processor.getProcessedEdgesMap();
     auto vecEdgesUpd = vector<Edge>();
     for (auto& mapIt : mapEdges) {
         vecEdgesUpd.emplace_back(Edge(mapIt.first.first, mapIt.first.second, mapIt.second));
     }
     return Graph(vecEdgesUpd);
-}
-
-void ShortestParts(Graph &graph, Node *sNode, map<pair<int,int>,int>& mapEdges) {
-    initializeSingleSource(graph, sNode);
-    for (int count = 0; count < graph._mapNodes.size() - 1; count++) {
-        for (int i = 0; i < graph._adjMatrix.size(); i++) {
-            for (int t = 0; t < graph._adjMatrix[i].size(); t++) {
-                if (graph._adjMatrix[i][t]) {
-                    relax(graph._mapNodes[i], graph._mapNodes[t], graph._adjMatrix[i][t]);
-                }
-            }
-        }
-    }
-
-    for (auto& mapIt : graph._mapNodes) {
-        Node *node = mapIt.second;
-        while(node != nullptr) {
-            if (node->_parent == nullptr || node->_color == BLACK) {
-                if (graph._mapNodes.size() == 1) {
-                    mapEdges[make_pair(mapIt.first, mapIt.first)] = 0;
-                }
-                break;
-            }
-            mapEdges[make_pair(node->_parent->_nodeCode, node->_nodeCode)] = node->_parent->_mapEdges[node->_nodeCode];
-            node->_color = BLACK;
-            node = node->_parent;
-        }
-    }
 }
