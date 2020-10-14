@@ -23,9 +23,6 @@ struct MultiThreadAlgorithmArgs {
     }
 
     void run() {
-        _outputFileName ="results/multithreadTestResults.csv";
-        _inputFileNamePrefix = "test_data/test";
-        _cfgFileName = "../test/parameters.cfg";
         std::cout << "Input files names prefix: " << _inputFileNamePrefix << std::endl;
         std::cout << "Output file name: " << _outputFileName << std::endl;
         if (_cfgFileName.empty()) {
@@ -36,34 +33,46 @@ struct MultiThreadAlgorithmArgs {
         std::ofstream fout(_outputFileName);
         fout << "Edges count;Nodes count;Time (ms)" << std::endl;
         auto vecCfg = parseConfig(_cfgFileName);
-        for (auto& cfg : vecCfg) {
-            string inputFileName = _inputFileNamePrefix + std::to_string(cfg.edgesCount) + ".txt";
+
+        for (auto & cgf : vecCfg) {
+            string inputFileName = _inputFileNamePrefix + std::to_string(cgf.edgesCount) + ".txt";
 
             auto vecEdges = parseFileToEdgesVec(inputFileName);
             auto graph = Graph(vecEdges); // get Graph
             auto vecGraphs = getStronglyConnectedComponents(graph);
 
+            auto availableThreadsCount = std::thread::hardware_concurrency();
+            int delta = vecGraphs.size() < availableThreadsCount ? 1 : round(float(vecGraphs.size()) / availableThreadsCount);
+            auto vecThreads = vector<std::thread>();
+            MultiThread::GraphProcessor processor(vecGraphs.size());
+
             std::cout << "Start algorithm for graph with " << vecEdges.size() << " edges and "
                       << graph.getNodesCount() << " nodes..." << std::endl;
-
-            auto availableThreadsCount = std::thread::hardware_concurrency();
-            MultiThread::GraphProcessor processor(vecGraphs.size());
+            std::cout << "Components count: " << vecGraphs.size() << std::endl;
             auto start = steady_clock::now();
-            for (int counter = 0; counter < (vecGraphs.size() / availableThreadsCount) + 1; counter++) {
-                auto iterationsCount = availableThreadsCount + counter > vecGraphs.size() ? vecGraphs.size() : availableThreadsCount + counter;
-                for (auto i = counter * availableThreadsCount; i < iterationsCount; i++) {
-                    std::thread(
-                        [](MultiThread::GraphProcessor& processor, Graph& graph, int componentIndex, int stopNumber) {
-                                auto processedGraph = RemoveExtraEdges(graph);
-                                processor.addProcessedComponent(std::ref(processedGraph), componentIndex, stopNumber);
-                            },
-                            std::ref(processor), std::ref(vecGraphs[i]), i, iterationsCount).join();
-                }
-                std::unique_lock<std::mutex> lock(MultiThread::mainThreadLock);
-                while(!MultiThread::algorithmIsDone) {
-                    MultiThread::mainThreadSignal.wait(lock);
-                }
+
+            auto threadsCount = vecGraphs.size() < availableThreadsCount ? vecGraphs.size() : availableThreadsCount;
+            for (int i = 0; i < threadsCount; i++) {
+                int beginIndex = i  * delta;
+                int endIndex = (i == threadsCount - 1) ? vecGraphs.size() : (i + 1) * delta;
+                vecThreads.emplace_back(std::thread(
+                        [](MultiThread::GraphProcessor &processor, vector<Graph>& vecGraphs, int beginIndex, int endIndex) {
+                            for (int i = beginIndex; i < (endIndex < vecGraphs.size() ? endIndex : vecGraphs.size()); i++) {
+                                auto graph = RemoveExtraEdges(vecGraphs[i]);
+                                processor.addProcessedComponent(graph);
+                            }
+                        },
+                        std::ref(processor), std::ref(vecGraphs), beginIndex, endIndex));
             }
+            std::for_each(vecThreads.begin(), vecThreads.end(), [&](std::thread& th) {
+                th.join();
+            });
+            std::cout << "Complete for " << inputFileName << std::endl;
+            /*std::unique_lock<std::mutex> lock(MultiThread::mainThreadLock);
+            while(!MultiThread::flag) {
+                MultiThread::signal.wait(lock);
+            }
+            MultiThread::flag = false;*/
             auto vecUpdGraphs = processor.getProcessedGraph();
             double time = duration_cast<milliseconds>(steady_clock::now() - start).count();
             std::cout << "Finished in " << time << " millisecond" << std::endl;
