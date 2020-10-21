@@ -1,17 +1,20 @@
 #include <iostream>
-#include <string>
-#include <chrono>
+#include <mutex>
+#include <fstream>
+
 #include <args.hpp>
-#include "extra_paths.hpp"
+#include "mapreduce.hpp"
 
 using namespace std::chrono;
+using std::string;
+using std::ofstream;
 
-struct MultiThreadAlgorithmArgs {
+struct MapReduceAlgorithmArgs {
     string _inputFileNamePrefix;
     string _outputFileName;
     string _cfgFileName;
 
-    MultiThreadAlgorithmArgs() = default;
+	MapReduceAlgorithmArgs() = default;
 
     static const char* help() {
         return "Algorithm removing unnecessary edges in graph";
@@ -35,6 +38,7 @@ struct MultiThreadAlgorithmArgs {
         std::ofstream fout(_outputFileName);
         fout << "Edges count;Nodes count;Time (ms)" << std::endl;
         auto vecCfg = parseConfig(_cfgFileName);
+
         for (auto& cfg : vecCfg) {
             string inputFileName = _inputFileNamePrefix + std::to_string(cfg.edgesCount) + ".txt";
 
@@ -47,7 +51,7 @@ struct MultiThreadAlgorithmArgs {
                       << graph.getNodesCount() << " nodes..." << std::endl;
             auto start = steady_clock::now();
             for (Graph &g : vecGraphs) {
-                vecUpdGraphs.emplace_back(RemoveExtraEdges(g));
+                vecUpdGraphs.emplace_back(MapReduceRemoveExtraEdges(g));
             }
             double time = duration_cast<milliseconds>(steady_clock::now() - start).count();
             std::cout << "Finished in " << time << " millisecond" << std::endl;

@@ -2,7 +2,10 @@
 #include <string>
 #include <args.hpp>
 #include <mutex>
+#include <experimental/filesystem>
 #include "multithread.hpp"
+
+using namespace std::experimental::filesystem;
 
 struct MultiThreadAlgorithmArgs {
     string _inputFileNamePrefix;
@@ -52,6 +55,17 @@ struct MultiThreadAlgorithmArgs {
             std::cout << "Finished in " << time << " millisecond" << std::endl;
 
             fout << vecEdges.size() << ";" << graph.getNodesCount() << ";" << time << std::endl;
+
+            std::ofstream oldGraphFileOut(_inputFileNamePrefix + std::to_string(cfg.edgesCount) + "_Old.csv");
+            std::ofstream updGraphFileOut(_inputFileNamePrefix + std::to_string(cfg.edgesCount) + "_Upd.csv");
+            for (Graph &g : vecUpdGraphs) {
+                for (auto& edge : g.getEdgesVec()) {
+                    oldGraphFileOut << edge._firstNode << ";" << edge._secondNode << ";" << edge._weight << std::endl;
+                    updGraphFileOut << edge._firstNode << ";" << edge._secondNode << ";" << edge._weight << std::endl;
+                }
+            }
+            oldGraphFileOut.close();
+            updGraphFileOut.close();
         }
         std::cout << "Time measurements are finished. Results are written in " << _outputFileName << std::endl;
         fout.close();
