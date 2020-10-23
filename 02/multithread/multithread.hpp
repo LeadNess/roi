@@ -20,7 +20,7 @@ namespace MultiThread {
 
     public:
 
-        explicit GraphProcessor(int );
+        explicit GraphProcessor();
 
         void addEdgesMap(map<pair<int,int>,int>& );
         map<pair<int,int>,int> getProcessedEdgesMap() const;
@@ -29,7 +29,7 @@ namespace MultiThread {
 
 } // MultiThread
 
-MultiThread::GraphProcessor::GraphProcessor(int nodesCount) {
+MultiThread::GraphProcessor::GraphProcessor() {
     _mapEdges = map<pair<int,int>,int>();
 }
 
@@ -49,7 +49,7 @@ Graph ParallelRemoveExtraEdges(Graph &graph) {
     auto availableThreadsCount = std::thread::hardware_concurrency();
     int delta = graph.getNodesCount() < availableThreadsCount ? 1 : round(float(graph.getNodesCount()) / availableThreadsCount);
     auto vecThreads = vector<std::thread>();
-    MultiThread::GraphProcessor processor(graph.getNodesCount());
+    MultiThread::GraphProcessor processor;
 
     auto threadsCount = graph.getNodesCount() < availableThreadsCount ? graph.getNodesCount() : availableThreadsCount;
     for (int i = 0; i < threadsCount; i++) {
@@ -57,7 +57,7 @@ Graph ParallelRemoveExtraEdges(Graph &graph) {
         int endIndex = (i == threadsCount - 1) ? graph.getNodesCount() - 1 : (i + 1) * delta;
         vecThreads.emplace_back(std::thread(
                 [](MultiThread::GraphProcessor &processor, Graph& graph, int beginIndex, int endIndex) {
-                    auto copiedGraph = Graph(graph._adjMatrix);
+                    auto copiedGraph = Graph(graph.getEdgesVec());
                     auto mapEdges = map<pair<int,int>,int>();
 
                     auto mapIt = copiedGraph._mapNodes.begin();
@@ -68,7 +68,7 @@ Graph ParallelRemoveExtraEdges(Graph &graph) {
                         }
                         ShortestParts(copiedGraph, mapIt->second, mapEdges);
                     }
-                    processor.addEdgesMap(mapEdges);
+                    processor.addEdgesMap(std::ref(mapEdges));
                 },
                 std::ref(processor), std::ref(graph), beginIndex, endIndex));
     }

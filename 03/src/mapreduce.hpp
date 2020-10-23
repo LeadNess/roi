@@ -9,25 +9,10 @@
 
 map<pair<int, int>, int> MapFunction(const pair<Graph, map<int, Node*>> & InterData) {
 	map<pair<int, int>, int> mapEdges;
-	auto copiedGraph = Graph(InterData.first._adjMatrix);
-
+	auto copiedGraph = Graph(InterData.first.getEdgesVec());
 	auto mapIt = InterData.first._mapNodes.begin();
 	for (auto& it : InterData.second) {
 		ShortestParts(copiedGraph, mapIt->second, mapEdges);
-	}
-	for (auto& mapIt : copiedGraph._mapNodes) {
-		Node *node = mapIt.second;
-		while (node != nullptr) {
-			if (node->_parent == nullptr || node->_color == BLACK) {
-				if (copiedGraph._mapNodes.size() == 1) {
-					mapEdges[make_pair(mapIt.first, mapIt.first)] = 0;
-				}
-				break;
-			}
-			mapEdges[make_pair(node->_parent->_nodeCode, node->_nodeCode)] = node->_parent->_mapEdges[node->_nodeCode];
-			node->_color = BLACK;
-			node = node->_parent;
-		}
 	}
 	return mapEdges;
 }
@@ -38,14 +23,13 @@ void ReduceFunction(map<pair<int, int>, int>& Results, const map<pair<int, int>,
 }
 
 Graph MapReduceRemoveExtraEdges(Graph& g) {
-	auto copiedGraph = Graph(g._adjMatrix);
-
-	auto qVecEdges = vector<Edge>();
-	vector<pair<Graph, map<int, Node*>>> VData(0);
+	auto copiedGraph = Graph(g.getEdgesVec());
 
 	auto Ithread = QThread::idealThreadCount();
+    vector<pair<Graph, map<int, Node*>>> VData;
+
 	int first = 0;
-	int delta = qVecEdges.size() / Ithread;
+	int delta = copiedGraph.getNodesCount() < Ithread ? 1 : round(float(copiedGraph.getNodesCount()) / Ithread); // copiedGraph.getNodesCount() / Ithread;
 	int last = delta;
 	for (int i = 0; i < Ithread; i++) {
 		auto item = std::make_pair(copiedGraph, map<int, Node*>());
@@ -58,9 +42,9 @@ Graph MapReduceRemoveExtraEdges(Graph& g) {
 			item.second[mapIt->first] = mapIt->second;
 		}
 
-		VData.push_back(item);
+		VData.emplace_back(item);
 		first = last;
-		last = last + delta < qVecEdges.size() ? last + delta : qVecEdges.size();
+		last = last + delta < copiedGraph.getNodesCount() ? last + delta : copiedGraph.getNodesCount();
 	}
 
 	auto mapEdges = QtConcurrent::blockingMappedReduced(VData, MapFunction, ReduceFunction);

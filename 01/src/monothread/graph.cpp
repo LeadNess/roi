@@ -105,11 +105,10 @@ Graph::Graph(vector<vector<int>> adjMatrix) {
         if (mapNodes.find(edge._firstNode) == mapNodes.end()) {
             mapNodes[edge._firstNode] = counter;
             counter++;
-        } else {
-            int firstNode = mapNodes[edge._firstNode];
-            int secondNode = mapNodes[edge._secondNode];
-            mapNode2Edges[firstNode].emplace_back(make_pair(secondNode, edge._weight));
         }
+        int firstNode = mapNodes[edge._firstNode];
+        int secondNode = mapNodes[edge._secondNode];
+        mapNode2Edges[firstNode].emplace_back(make_pair(secondNode, edge._weight));
     }
 
     vector<int> vecNodes;

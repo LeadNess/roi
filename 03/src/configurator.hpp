@@ -22,8 +22,8 @@ struct MapReduceAlgorithmArgs {
 
     template<class F>
     void parse(F f) {
-        f(_inputFileNamePrefix, "--input", "-i", args::help("Input files names prefix"), args::required());
-        f(_outputFileName, "--output", "-o", args::help("Output file name"), args::required());
+        f(_inputFileNamePrefix, "--input", "-i", args::help("Input files names prefix")/*, args::required()*/);
+        f(_outputFileName, "--output", "-o", args::help("Output file name")/*, args::required()*/);
         f(_cfgFileName, "--config", "-c", args::help("Config file name"));
     }
 
@@ -33,6 +33,10 @@ struct MapReduceAlgorithmArgs {
         if (_cfgFileName.empty()) {
             _cfgFileName = "parameters.cfg";
         }
+        _inputFileNamePrefix = "test_data/test";
+        _outputFileName = "results/multithreadTestResults.csv";
+        _cfgFileName = "../test/parameters.cfg";
+
         std::cout << "Config file: " << _cfgFileName << std::endl;
 
         std::ofstream fout(_outputFileName);
